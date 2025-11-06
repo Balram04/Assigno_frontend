@@ -6,7 +6,7 @@ import EnhancedGroupManagement from '../components/student/EnhancedGroupManageme
 import AssignmentList from '../components/student/AssignmentList';
 import ProgressTracker from '../components/student/ProgressTracker';
 import BrowseCourses from '../components/BrowseCourses';
-import axios from 'axios';
+import api, { courseAPI, assignmentAPI } from '../utils/api';
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState('courses');
@@ -33,22 +33,15 @@ const StudentDashboard = () => {
 
   const fetchStudentData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user'));
       
       // Fetch enrolled courses
-      const coursesRes = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/courses/student/${user.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const coursesRes = await courseAPI.getStudentCourses(user.id);
       
       setCourses(coursesRes.data.courses || []);
       
       // Fetch assignments
-      const assignmentsRes = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/assignments`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const assignmentsRes = await assignmentAPI.getAllAssignments();
       
       const assignments = assignmentsRes.data.assignments || [];
       

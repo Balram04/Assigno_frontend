@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import AssignmentManagement from '../components/admin/AssignmentManagement';
 import BrowseCourses from '../components/BrowseCourses';
 import Analytics from '../components/admin/Analytics';
-import axios from 'axios';
+import api, { courseAPI } from '../utils/api';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -32,22 +32,15 @@ const AdminDashboard = () => {
 
   const fetchProfessorData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user'));
       
       // Fetch professor's courses
-      const coursesRes = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/courses/professor/${user.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const coursesRes = await courseAPI.getProfessorCourses(user.id);
       
       setCourses(coursesRes.data.courses || []);
       
       // Fetch assignments
-      const assignmentsRes = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/assignments/admin/all`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const assignmentsRes = await api.get('/assignments/admin/all');
       
       const assignments = assignmentsRes.data.assignments || [];
       

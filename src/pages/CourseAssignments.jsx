@@ -16,7 +16,7 @@ import {
 import Navbar from '../components/Navbar';
 import ProgressBar from '../components/common/ProgressBar';
 import StatusBadge from '../components/common/StatusBadge';
-import axios from 'axios';
+import api, { courseAPI, submissionAPI } from '../utils/api';
 
 const CourseAssignments = () => {
   const { courseId } = useParams();
@@ -39,13 +39,8 @@ const CourseAssignments = () => {
 
   const fetchCourseData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Fetch course details with assignments included
-      const courseRes = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/courses/${courseId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const courseRes = await courseAPI.getCourseById(courseId);
       
       setCourse(courseRes.data.course);
       
@@ -54,10 +49,7 @@ const CourseAssignments = () => {
         setAssignments(courseRes.data.assignments);
       } else {
         // Fallback: Fetch assignments separately if not included
-        const assignmentsRes = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/courses/${courseId}/assignments`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const assignmentsRes = await courseAPI.getCourseAssignments(courseId);
         setAssignments(assignmentsRes.data.assignments || []);
       }
       
@@ -93,23 +85,13 @@ const CourseAssignments = () => {
     setSuccess('');
 
     try {
-      const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('files', file);
       formData.append('assignmentId', assignmentId);
       formData.append('groupId', groupId);
       formData.append('submissionNotes', submissionNotes);
 
-      await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/submissions/submit`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      await submissionAPI.submitAssignment(formData);
 
       setSuccess('Assignment submitted successfully! 🎉');
       setFile(null);
@@ -128,13 +110,7 @@ const CourseAssignments = () => {
 
   const handleAcknowledgeSubmission = async (submissionId) => {
     try {
-      const token = localStorage.getItem('token');
-      
-      await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/submissions/acknowledge/${submissionId}`,
-        { acknowledgmentNote: 'Submission acknowledged by group leader' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await submissionAPI.acknowledgeSubmission(submissionId, 'Submission acknowledged by group leader');
 
       setSuccess('Submission acknowledged successfully!');
       fetchCourseData();
